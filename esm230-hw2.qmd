@@ -1,0 +1,77 @@
+---
+title: "esm230-hw2"
+authors: "Caitlin Nordheim-Maestas, Kat Le"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+### Diagram
+
+![](images/IMG_0076.jpg)
+
+Article: @lobell2006
+
+### Libraries
+
+```{r message = 'false'}
+library(tidyverse)
+library(janitor)
+```
+
+### Data wrangling
+
+```{r message = 'false'}
+almond_feb <- read_csv(here::here("clim.txt")) %>% 
+  separate(col = "day month year wy tmax_c tmin_c precip",
+           into = c("day", "month", "year", "wy", "tmax_c",
+                    "tmin_c", "precip"),
+           sep = " ") %>% 
+  filter(month == 2) %>%
+  mutate(year = as.numeric(year),
+         tmin_c = as.numeric(tmin_c),
+         precip = as.numeric(precip)) %>% 
+  group_by(year, month) %>% 
+  summarise(tempc_min = min(tmin_c, na.rm = TRUE))
+
+almond_jan <- read_csv(here::here("clim.txt")) %>% 
+  separate(col = "day month year wy tmax_c tmin_c precip",
+           into = c("day", "month", "year", "wy", "tmax_c",
+                    "tmin_c", "precip"),
+           sep = " ") %>% 
+  filter(month == 1) %>%
+  mutate(year = as.numeric(year),
+         tmin_c = as.numeric(tmin_c),
+         precip = as.numeric(precip)) %>% 
+  group_by(year, month) %>% 
+  summarise(precip_sum = sum(precip, na.rm = TRUE))
+
+```
+
+### Almond Yield Model
+
+**Equation**:
+
+Almond Yield (tons/acre) = -0.015 T~n,2~ - 0.0046 T^2^~n,2~ - 0.07 P~1~ + 0.0043 P^2^~1~ + 0.28
+
+```{r}
+
+source(here::here("eds230-hw2_fun.R"))
+
+# almond_yield <- function(min_temp, precip) {
+#   
+#   yield = (-0.015*min_temp) + (-0.0046*(min_temp^2)) + (-0.07*precip) + (0.0043*(precip^2)) + 0.28
+#   
+#   df = data.frame(max(yield),
+#          min(yield),
+#          mean(yield)) %>% 
+#     clean_names()
+#   
+#   return(df)
+# }
+
+output <- almond_yield(min_temp = almond_feb$tempc_min, 
+                       precip = almond_jan$precip_sum)
+
+output
+```

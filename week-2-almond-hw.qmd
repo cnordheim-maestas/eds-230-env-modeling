@@ -87,6 +87,7 @@ library(here)
 NB ran this in terminal to make txt to csv: "mv clim.txt clim.csv"
 
 ```{r}
+# read in data and clean the dataset
 clim <- read_csv(here("week-2", "clim.csv")) %>% 
     separate(col = "day month year wy tmax_c tmin_c precip",
            into =c("day", "month", "year", "wy", "tmax_c", "tmin_c", "precip"),
@@ -96,10 +97,18 @@ clim <- read_csv(here("week-2", "clim.csv")) %>%
   mutate(tmin_c =as.numeric(tmin_c),
          precip =as.numeric(precip))
 
-# let's get some monthly averages!
-almond <- clim %>% 
-  summarize(tmin_c_monthlyave = mean(tmin_c),
-            precip_mm_monthlyave = mean(precip))
+clim_summ <- read_csv(here("week-2", "clim.csv")) %>% 
+    separate(col = "day month year wy tmax_c tmin_c precip",
+           into =c("day", "month", "year", "wy", "tmax_c", "tmin_c", "precip"),
+           sep = " ") %>% 
+  filter(month ==2) %>% # Feb is only month that matters to almond yeild
+  group_by(year) %>% 
+  mutate(tmin_c =as.numeric(tmin_c),
+         precip =as.numeric(precip)) %>% 
+  group_by(year) %>% 
+  summarize(month_precip = sum(precip),
+            min_temp_for_month = min(tmin_c))
+
 ```
 
 # Build Function
@@ -107,9 +116,10 @@ almond <- clim %>%
 ```{r}
 almonds<- function(Tn, P){ 
   # specifying inputs of the function, here they are the parameters of the model
-  Y = 0.015*Tn - (0.0046*(Tn^2)) - 0.07*P + (0.0043*(P^2)) + 0.28 # E is the solution to multiplying all of the other values together
+  Y = -0.015*Tn - 0.0046*Tn^2 - 0.07*P + 0.0043*P^2 + 0.28 
   return(max(Y)) # print out the value of the almond yield (in tons/acre)
 }
+
 ```
 
 # Test function
@@ -120,6 +130,7 @@ almonds<- function(Tn, P){
 
 
 ```{r}
-almonds(Tn = almond$tmin_c_monthlyave, P = almond$precip_mm_monthlyave)
+almonds(Tn = clim_summ$min_temp_for_month, P = clim_summ$month_precip)
+
 ```
 
