@@ -61,4 +61,3 @@ solarpv = function(area, eff=0.8, PR=0.75, solar, clr="blue", eunits="J", etype=
   return(list(annual=annualsolar[,c("year","elect")], mean=mean(annualsolar$elect)))
 
 }
-

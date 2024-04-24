@@ -1,0 +1,321 @@
+---
+title: "HW3"
+author: "Caitlin Nordheim-Maestas, Kat Le"
+format: 
+  html:
+    code-overflow: wrap
+    code-fold: true
+    embed-resources: true
+---
+
+Load libraries
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(janitor)
+library(here)
+library(purrr)
+library(ggpubr)
+```
+
+Load data
+
+```{r}
+#| message: false
+#| warning: false
+
+# tidy data so that it's a dataframe where each column is a numeric
+data = read.table(here::here("clim.txt"), header=T)
+
+```
+
+Load crop_yield function
+
+```{r}
+#| message: false
+#| warning: false
+source(here::here("crop_yield.R"))
+source(here::here("crop_profit.R"))
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+crop_summary <- crop_yield("almonds", data)
+crop_profit_base <- crop_profit(yield_data = crop_summary)
+```
+
+### Single parameter sensitivity: vary revenue
+
+```{r}
+#| message: false
+#| warning: false
+# assume a uniform distribution of 22 samples
+
+deviation = 0.10
+base_revenue = 3800
+revenue = runif(min=base_revenue-deviation*base_revenue, 
+                max = base_revenue+deviation*base_revenue, n=22)
+
+# now run our model for the parameters
+almond_profit = revenue %>% map(~crop_profit(yield_data = crop_summary, 
+                        cost_irrig = 530, 
+                        cost_nonirrig = 3367, 
+                      revenue =.x ))
+
+# extract a useful data structure and reformat as a data frame with nice column names
+tmp = map_df(almond_profit, `[`, c("year", 
+                                   "yield", "profit"))
+
+
+almond_df = data.frame(year = tmp$year,
+                       yield = tmp$yield,
+                       profit = tmp$profit,
+                       revenue = revenue)
+
+
+# now we could plot
+sens_plot1 <- ggplot(almond_df, 
+       aes(as.factor(year), profit, group=year))+
+  geom_boxplot()+
+  labs(y="Profit", x="Year",
+       title = "Senstivity Analysis for Revenue Parameter") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+sens_plot1
+
+rev_prof_plot <- ggplot(data = tmp, aes(x = revenue, y = profit)) +
+  geom_point()
+
+sens_plot_a2 <- almond_df %>%
+  ggplot(aes(y = profit, x = revenue))+
+  geom_point()+
+  labs(y="Profit (each year is a point)", x="Revenue input",
+       title = "Senstivity Analysis for revenue Parameter") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+sens_plot_a2
+
+# let's look at the mean profit over all time with ucertainty in revenue
+
+# step 1: make a df that has the means for each year of profit
+mean = almond_df %>% 
+  dplyr::select(-year, -yield) %>% 
+  group_by(revenue) %>% 
+  summarize(profit = mean(profit))
+
+# step 2: plot it
+sens_plot_a3 <- mean %>%
+  ggplot(aes(y = profit, x = revenue))+
+  geom_point()+
+  labs(y="Mean Profit Per Year", x="Revenue input",
+       title = "Senstivity Analysis for Revenue Parameter") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+sens_plot_a3
+
+# plot just the yeild over time
+
+# step 2: plot it
+sens_plot_a3 <- almond_df %>%
+  ggplot(aes(y = yield, x = year))+
+  geom_point()  +
+  labs(y="Mean Profit Per Year", x="Revenue input",
+       title = "Senstivity Analysis for Revenue Parameter") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+sens_plot_a3
+
+# show the profit
+ggplot(mean, aes(y=profit))+geom_boxplot()
+
+
+```
+
+### Can it be this easy??
+
+```{r eval=TRUE}
+# generate some test data for revenue
+deviation = 0.10
+base_revenue = 3800
+revenue = runif(min=base_revenue-deviation*base_revenue,
+                max = base_revenue+deviation*base_revenue, n=22)
+
+# create a data frame to store results of model run
+profit_estimate = cbind.data.frame(revenue=revenue, estimate=crop_profit(yield_data = crop_summary, revenue = revenue))
+
+# graph the profit estimate for each input of revenue
+ggplot(profit_estimate,aes(revenue, estimate.profit) )+geom_point()+labs(y="Profit in US dollar/acre", x="Revenue in US dollar/acre")
+```
+
+### Single parameter sensitivity: vary irrigation cost
+
+```{r}
+#| message: false
+#| warning: false
+
+# assume a uniform distribution of 20 samples
+nsamples = 22
+deviation = 0.1
+base_irrig = 530
+irrig = runif(min=base_irrig-deviation*base_irrig, 
+                max = base_irrig+deviation*base_irrig, n=nsamples)
+
+
+# now run our model for the parameters
+almond_profit_irrig = irrig %>% map(~crop_profit(yield_data = crop_summary, 
+                      cost_nonirrig = 3367, 
+                      revenue = 3800,
+                       cost_irrig = .x ))
+
+# extract a useful data structure and reformat as a data frame with nice column names
+tmp = map_df(almond_profit_irrig, `[`, c("year", 
+                                   "yield", "profit"))
+
+
+almond_df_irrig = data.frame(year = tmp$year,
+                       yield = tmp$yield,
+                       profit = tmp$profit,
+                       irrig = irrig)
+
+
+# now we could plot the sensitivity to irrigation costs by year
+sens_plot_i1 <- ggplot(almond_df_irrig, 
+       aes(as.factor(year), profit, group=year))+
+  geom_boxplot()+
+  labs(y="Profit", x="Year",
+       title = "Senstivity Analysis for irrigation cost Parameter") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+sens_plot_i1 
+
+# now we could plot irrigation input vs profit
+
+sens_plot_i2 <- almond_df_irrig %>%
+  ggplot(aes(y = profit, x = irrig))+
+  geom_point()+
+  labs(y="Profit", x="Irrigation input",
+       title = "Senstivity Analysis for irrigation cost Parameter") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+sens_plot_i2
+
+# step 1: make a df that has the means for each year of profit
+mean = almond_df_irrig %>% 
+  dplyr::select(-year, -yield) %>% 
+  group_by(irrig) %>% 
+  summarize(profit = mean(profit))
+
+# step 2: plot it
+sens_plot_i3 <- mean %>%
+  ggplot(aes(y = profit, x = irrig))+
+  geom_point()+
+  labs(y="Mean Profit Per Year", x="Irrigation cost input",
+       title = "Senstivity Analysis for IrrigParameter") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+sens_plot_i3
+
+
+```
+
+### Can it be this easy??
+
+```{r eval=TRUE}
+# generate some test data for revenue
+# nsamples = 22
+# deviation = 0.1
+# base_irrig = 530
+# irrig = runif(min=base_irrig-deviation*base_irrig,
+#                 max = base_irrig+deviation*base_irrig, n=nsamples)
+
+# create a data frame to store results of model run
+profit_estimate = cbind.data.frame(irrig=irrig, estimate=crop_profit(yield_data = crop_summary, cost_irrig=irrig))
+
+# graph the profit estimate for each input of revenue
+ggplot(profit_estimate,aes(irrig, estimate.profit) )+geom_point()+labs(y="Profit in US dollar/acre", x="Irrigation cost in US dollar/acre")
+```
+
+
+### Combined parameter sensitivity
+
+```{r}
+# assume a uniform distribution of 20 samples
+nsamples = 300
+deviation = 0.15
+base_revenue = 3800
+revenue = runif(min=base_revenue-deviation*base_revenue, 
+                max = base_revenue+deviation*base_revenue, n=nsamples)
+
+cost_irrig = rnorm(mean = 530, sd = 0.1, n = nsamples)
+
+parms = cbind.data.frame(cost_irrig, revenue)
+
+# now run our model for the parameters
+results = parms %>% pmap(~crop_profit(yield_data = crop_summary, 
+                        cost_irrig = 530, 
+                        cost_nonirrig = 3367, 
+                        revenue = 3800))
+
+# now we can extract results from the list as above
+profit = map_df(results,`[`, c("year", "yield", "profit"))
+
+# and we can add the parameter values for each run
+profit = cbind.data.frame(profit, parms)
+
+
+# now we could plot
+sens_plot1 <- ggplot(profit, 
+       aes(as.factor(year), profit, group=year))+
+  geom_boxplot()+
+  labs(y="Profit", x="Year",
+       title = "Senstivity Analysis for Revenue Parameter") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+sens_plot1
+
+rev_prof_plot <- ggplot(data = profit, aes(x = revenue, y = profit)) +
+  geom_point() +
+  theme_classic()
+rev_prof_plot
+```
+
+# Paragraph of interpretation
+
+Here, we built a model to estimate the profit from almond farming taking climatic variables into account (minimum temperature in February and total precipitation in January) to predict the almond yield, then we incorporated a parameter for the revenue per acre, since the value of almonds can vary quite a bit, and a parameter for the cost of irrigation, as we expect the cost to irrigate a farm to vary as well. We also incorporated the cost of non-irrigation tasks. We were interested in how sensitive the model was to **changes in almond revenue** and **changes in irrigation costs**, so we performed sensitivity analyses on these variables. We varied revenue by 10%, as almond revenue in California historically varied that much. We varied the cost of irrigation by 10% as well, as that seemed like a reasonable amount of variability to us. We found that profit did not have a strong linear relationship with a variation either revenue nor profit, as was seen in our scatterplots. 
+
+NOTES:
+
+We will use the output for mean_almond_yeild from our almond_yield function as input into a function that estimates profit given a revenue (in \$/ton)
+
+-   compute_profit_fromalmonds
+
+    -   inputs: mean_almond_yield, revenue, cost
+    -   outputs: single dataframe with columns for \* profit \* year??
+
+Profit = Yield\*Revenue - Non-irrigation_cost + irrigation_cost
+
+Where: Profit: annual profit in \$/acre
+
+Yield = annual almond yield from yield function in tons/acre Revenue = revenue from selling almonds in \$/ton Note: end up with units \$/acre
+
+Cost = cost of production per acre (est: \$3,897 per acre) Note: end up with units \$/acre
+
+Could do something more fun like Cost = non-irrigation cost + irrigation cost and just look at varying irrigation costs in \$/acre
+
+Parameters we can vary:
+
+1: Revenue (Over a range: 0.90 - 2.10 dollars per POUND, so first convert to \$ per ton (1 pound = 0.0005 tons; so 0.9 dollars per pound is 0.9/0.0005 dollars per ton = 1800 dollars per ton & 2.10 dollars per pound is 4200 dollars per ton))
+
+2: Annual Cost of production: how much do we want to vary this? Do we want to just do a piece? Plots we should make:
+
+Parm 1: Revenue
+
+1: Boxplot showing parm uncertainty (with ?? on x axis) 2: Boxplot showing mean of parm across the range of uncertainty w the output on x axis 3: Scatterplot of parm vs output showing relationship of how parm influences the results
+
+Parm 2: Cost
+
+1: Boxplot showing parm uncertainty (with ?? on x axis) 2: Boxplot showing mean of parm across the range of uncertainty w the output on x axis 3: Scatterplot of parm vs output showing relationship of how parm influences the results

@@ -1,0 +1,157 @@
+---
+title: "Catm assignment"
+format: html
+---
+
+# In class ungraded homework for thursday
+
+For a given forest, perform a sensitivity analysis of model predictions
+of conductance Consider the sensitivity of your estimate to uncertainty
+in the following parameters and inputs
+
+Windspeeds are **normally distributed** with a **mean of 250** cm/s with
+a **standard deviation of 30 cm/s** For vegetation height assume that
+height is somewhere between **9.5 and 10.5 m** (but any value in that
+range is equally likely) For the and parameters you can assume that they
+are normally distributed with standard deviation of 1% of their default
+values
+
+1. Use the Latin hypercube approach to generate parameter values for
+the 4 parameters
+
+-   height
+
+-   kd
+
+-   k0
+
+-   v
+
+2.  Run the atmospheric conductance model for these parameters
+3.  Plot conductance estimates in a way that accounts for parameter
+    uncertainty
+4.  Plot conductance estimates against each of your parameters
+5.  Estimate the Partial Rank Correlation Coefficients
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(sensitivity)
+library(tidyverse)
+library(lhs)
+library(purrr)
+```
+
+# Example of using Latin Hypercube sampling for sensitivity analysis
+
+Lets look at our almond yield example
+
+```{r LHS}
+# for formal sensitivity analysis it is useful to describe output in
+# several summary statistics - how about mean, max and min yield
+source("Catm.R")
+
+# set a random seed to make things 'random'
+set.seed(1)
+
+# which parameters
+pnames = c("v", "height", "zm", "k_o", "k_d")
+
+# how many parameters
+npar =  length(pnames) # lengths of the num of the parms
+# how many samples
+nsample = 100 # "million dollar question: how many is enough", what we can do it try it with more samples and see if the partial coeffs differ a lot
+
+## 1: create the latin hypercube
+
+parm_quant = randomLHS(nsample, npar) # how many samples, how many parms # this creates these quantiles
+colnames(parm_quant)=pnames
+
+# choose distributions for parameters - this would come from
+# what you know about the likely range of variation
+# then use our random samples to pick the quantiles
+
+parm = as.data.frame(matrix(nrow=nrow(parm_quant), ncol=ncol(parm_quant))) # same rows and columns as the quantiles
+colnames(parm) = pnames 
+# for each parameter pick samples 
+# I'm using several examples normal distribution (with 10% standard deviation) and uniform with +- 10%
+# in reality I should pick distribution from knowledge about uncertainty in parameters
+
+## 2: mapping your dist over the params
+
+# to make it easy to change i'm setting standard deviation / range variation to a variable
+pvar = 10 # "I want to look at a 10% variation" and it is carried through here
+
+# for each column I will pull from a normal dist with this mean and sd
+
+# Windspeeds are **normally distributed** with a **mean of 250** cm/s with  a **standard deviation of 30 cm/s** 
+
+# For vegetation height assume that height is somewhere between **9.5 and 10.5 m** (but any value in that range is equally likely) <- does that mean uniform dist?
+
+# For kd k0 parameters you can assume that they are normally distributed with standard deviation of 1% of their default values
+
+## normal dists
+parm[,"v"] = qnorm(parm_quant[,"v"], mean=250, sd=30/pvar) 
+
+# For kd k0 parameters you can assume that they are normally distributed with standard deviation of 1% of their default values
+# default: k_o=0.1, k_d=0.7
+parm[,"k_d"] = qnorm(parm_quant[,"v"], mean=0.7, sd=0.007) 
+parm[,"k_o"] = qnorm(parm_quant[,"v"], mean=0.1, sd=0.001) 
+
+# for uniform I'm using +- 10%
+# for each column I will pull from a unif dist with this min and max
+
+##qnorm is like rnorm but sampling from the QUANTILES ("q"norm)
+parm[,"height"] = qunif(parm_quant[,"height"], min=9.5, max=10.5)
+
+head(parm)
+```
+
+# Plotting
+
+Plot relationship between parameter and output to understand how
+uncertainty in parameter impacts the output to determine over what
+ranges of the parameter uncertainty is most important (biggest effect)
+
+-   Use a box plot (of output) to graphically show the impact of
+    uncertainty on output of interest
+
+-   To see more of the distribution - graph the cumulative distribution
+
+    -   high slope, many values in that range
+    -   low slope, few values in that range
+    -   constant slope, even distribution
+
+-   Scatterplots against parameter values
+
+------------------------------------------------------------------------
+
+Quantifying
+
+# Correlation and Pcc for Maximum Yield
+
+```{r quantifying}
+# combine parameter sets with output
+
+
+# simple correlation coefficients
+result = map(parm, cor.test, y=yieldsd$maxyield) # change the values
+result$Tmincoeff1
+result$Tmincoeff2
+result$Pcoeff1
+result$Pcoeff2
+result$intercep
+
+# just the confidence interval
+justconf = result %>% map_df("conf.int")
+justconf
+
+# partial regression rank coefficients
+
+senresult_rank = pcc(parm, yieldsd$maxyield, rank=TRUE )
+senresult_rank
+plot(senresult_rank)
+
+
+```
+

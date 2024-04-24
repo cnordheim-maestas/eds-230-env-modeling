@@ -2,6 +2,7 @@
 title: "InformalSensitivity"
 output: html_document
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
@@ -42,7 +43,7 @@ site2$mean
 
 Informal Sensitivity Analysis
 
-varying efficiency aka `ethresh`
+varying efficiency aka `ethresh` (here it will be revenue for us)
 
 ```{r sen1, eval=T}
 
@@ -50,15 +51,20 @@ varying efficiency aka `ethresh`
 
 # use map from purrr
 # notice how map adds the one parameter that is missing from the input list
+# making a list of efficiency (revenue) inputs
 eff = rnorm(mean=0.6, sd = 0.1, n=20)
-eff
-site2 = eff %>% 
-  map(~solarpv( area=0.1, solar=sierraczosolar, clr="green", eunit="W", g=FALSE, etype="direct", eff=.x )) # eff = .x ??
 
+# site2: this outputs a list of lists with the output from a range of parm inputs
 # eff = .x take the value that I piped in, kinda like indexing to the efficiency?
 # map is kinda iterating the solarpv function over the different efficiency values 
+## WHERE TF IS YEAR?? WHAT IS HAPPENING??
 
-head(site2) # this is a list of stuff...hard to get info out of this
+## for each eff she pulls in the year and the mean
+
+site2 = eff %>% 
+  map(~solarpv( area=0.1, solar=sierraczosolar, clr="green", eunit="W", g=FALSE, etype="direct", eff=.x )) 
+
+head(site2) # this is a list of lists of stuff...hard to get info out of this
 
 # this is pretty messy - but we can extract a useful data structure,lets say we want 
 # just the annual data (not the mean annual time series), and then reformat as a data frame with nice column names
@@ -75,9 +81,12 @@ site2df = data.frame(year = tmp$annual$year, elect= tmp$annual$elect)
 ## box shows parameter uncertainty
 ## why do this? to see how big the range of output might be relative to "uncertain" parameter range
 ggplot(site2df, aes(year,elect, group=year ))+geom_boxplot()+labs(y="Electricity generated in W")
+### what's going on in 1944?
 
 # we also might want an average across parameter uncertainty
-site2_average = site2df %>% group_by(year) %>% dplyr::summarize(elect=mean(elect))
+## this gives a list of average for each year
+site2_average = site2df %>% group_by(year) %>% 
+  dplyr::summarize(elect=mean(elect))
 
 # now add this to the plot - note that we remove the grouping by using group=1
 ggplot(site2df, aes(year,elect, group=year))+geom_boxplot()+labs(y="Electricity in W")+
@@ -91,6 +100,7 @@ tmp = map_df(site2,`[`, c("mean"))
 # how variable is electricity generation (mean over all time) with uncertainty in solar efficiency
 
 site2_mean = data.frame(eff=eff, elect= tmp)
+
 ggplot(site2_mean, aes(y=mean))+geom_boxplot()+
   labs(x="Electricity in W")
 

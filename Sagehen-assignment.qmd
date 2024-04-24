@@ -1,0 +1,60 @@
+---
+title: "Assignment Calibrate Sagehen streamflow"
+author: "Kat Le & Caitlin Nordheim-Maestas"
+format: html
+---
+
+Ecological Prelude:
+
+This data is taken from Sagehen Creek field station, a reserve that has a lot of research on birds, particularly interesting to us is the the MAPS program (https://www.birdpop.org/pages/maps.php) which monitors many species of birds to model their populations. Many birds rely on emerging insects, like mayflies, as a food source. Mayflies tend to emerge en mass, so it is vital that the timing of the mayfly emergence lines up with when the bird predators are present, especially for migratory species. Additionally, it has been postulated that a reduced or increased stream flow can trigger changes in when mayflies emerge (a delay or early emergence, respectively). A delayed emergence could be detrimental to the birds relying on the mayfly food source, and thus, we will focus on the instances of high streamflow, the maximum, during the months of ecological relevance to mayfly emergence. Thus, we will be using the streamflow model outputs from the Sagehen creek models to determine **which parameter set best predicts the maximum streamflow in the window of mayfly emergence (June-July)**
+
+*Note to Kat: If we are feeling fancy, instead of doing the monthly maximum streamflow, maybe we could calculate the deviation from the mean of all years, that would be more ecologically relevant, but less easily to follow along with the example code, so let's save this as an extra.*
+
+
+**sager.txt for part 1; sagerm.txt for part 2**
+
+# Part 1: Come up with a combined metric that you think is interesting
+
+-   if you can, try to include at least one metric (as part of your
+    combined metric) that needs to be transformed 
+be creative you can subset, aggregate, focus only on particular type of years or days
+
+Here, we will use the maximum streamflow events from the months of ecologcial relevance for mayfly emergence. 
+
+Our metrics will be 
+
+1: the model error in predicting the monthly maximum streamflow over the months June and July
+
+2: Something else, maybe the model error in something else? Or maybe one of the classic ones like NSE? but if we do model error then they will be in the same units and easier to combine... maybe here is where we do the deviation from the juneJuly mean across all years?
+
+
+# Part II
+
+-   Perform a split-sample calibration on the Sagehen model output
+    **(sagerm.txt)** you can decide what years to pick for pre and post
+    calibration use your performance metric from Part I
+
+-   Find the best and worst parameter set, given your performance metric
+    Graph something about streamflow (e.g daily, mean August, or ?) for
+    the best parameter set
+
+    \* Compute and plot how the performance of the model using the best
+    parameter set changed in pre and post calibration periods (that you
+    chose)
+
+-   Add the 'best' parameter set column number number to the quiz linked
+    below (so we can compare how different metrics influence which
+    parameter you pick)
+
+-   Write 2-3 sentences to explain your metric design and comment on
+    model performance based on your metric Use to Best Parameter
+    (Column) to record your 'best' parameter sets
+   
+# Read in data
+
+```{r}
+
+```
+
+
+

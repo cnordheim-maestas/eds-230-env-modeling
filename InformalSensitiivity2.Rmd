@@ -188,7 +188,7 @@ Develop a conceptual model
 
 ```{r  out.width="75%", out.height="75%", echo=FALSE }
 library(knitr)
-include_graphics("../img/power_comparison_figure.jpeg",) 
+#include_graphics("../img/power_comparison_figure.jpeg",) 
 ```
 
 # 
@@ -215,8 +215,8 @@ We will use output from our solarpv function as input into a function that estim
 
 ```{r valuep}
 
-source("../R/compute_NPV.R")
-source("../R/compute_profit_frompower.R")
+source("compute_NPV.R")
+source("compute_profit_frompower.R")
 
 compute_profit_frompower
 
@@ -240,7 +240,7 @@ ggplot(profit_solar, aes(as.factor(year), netpre, group=year))+geom_boxplot()+
  
 
 ```{r, out.width = "75%",out.height="75%", echo=FALSE}
-knitr::include_graphics("lecture3_conceptualmodels2/assets/img/reservoir_cm.001.jpeg")
+#knitr::include_graphics("lecture3_conceptualmodels2/assets/img/reservoir_cm.001.jpeg")
 ```
 
 * Input: Reservoir height (height) and flow rate (flow)
@@ -322,7 +322,7 @@ Notice that we can 're-use' our functions such as **compute_profit_frompower** f
 # rerun 'sampling' in using_data_with_functions.Rmd. above to get results from our reserovir model
 
 # lets start with hydro power
-source("../R/power_gen.R")
+source("power_gen.R")
 
 # we are 'making up' inputs for hydro power - to have it match the number of year 
 # that we had solar values for, lets sets the number of runs equal to the number of years

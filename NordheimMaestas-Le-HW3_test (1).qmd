@@ -1,0 +1,138 @@
+---
+title: "HW3"
+author: "Caitlin Nordheim-Maestas, Kat Le"
+format: 
+  html:
+    code-overflow: wrap
+    code-fold: true
+editor: visual
+---
+
+Load libraries
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(here)
+library(purrr)
+library(ggpubr)
+library(patchwork)
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+# tidy data so that it's a dataframe where each column is a numeric
+data = read.table(here::here("clim.txt"), header=T)
+
+# load functions
+source(here::here("crop_yield_test.R"))
+source(here::here("crop_profit_test.R"))
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+# use functions
+yieldanomaly <- crop_yield("almonds", data)
+almond_profit <- crop_profit(yield_anomaly = yieldanomaly)
+```
+
+```{r}
+
+# assume a uniform distribution of 150 samples
+nsamples = 150
+deviation = 0.10
+base_price = 3800
+price = runif(min=base_price-deviation*base_price, 
+                max = base_price+deviation*base_price, n=nsamples)
+
+
+results1 = price %>% map(~crop_profit(yield_anomaly = yieldanomaly,
+                                   cost_irrig = 530, 
+                                   cost_nonirrig = 3367,
+                                   price=.x ))
+
+profit1 = map_df(results1,`[`, c("year", "yield", "profit"))
+
+plot1 <- ggplot(profit1, aes(year, profit, 
+                    group=year ))+
+  geom_boxplot()+
+  labs(title = "Sensitivity Analysis for Price Parameter",
+       y="Profit Generated in US Dollar") +
+  theme_bw()
+plot1
+```
+
+```{r}
+# assume a uniform distribution of 300 samples
+nsamples = 150
+deviation = 0.15
+base_costirrig = 530
+cost_irrig = runif(min=base_price-deviation*base_price, 
+                max = base_price+deviation*base_price, n=nsamples)
+
+
+results2 = cost_irrig %>% map(~crop_profit(yield_anomaly = yieldanomaly,
+                                   cost_irrig = .x, 
+                                   cost_nonirrig = 3367,
+                                   price=3800 ))
+
+profit2 = map_df(results1,`[`, c("year", "yield", "profit"))
+
+plot2 <- ggplot(profit2, aes(year, profit, 
+                    group=year ))+
+  geom_boxplot()+
+  labs(title = "Sensitivity Analysis for Cost of Irrigation Parameter",
+       y="Profit Generated in US Dollar") +
+  theme_classic()
+plot2
+```
+
+```{r}
+# assume a uniform distribution of 300 samples
+nsamples = 150
+deviation = 0.15
+base_price = 3800
+price = runif(min=base_price-deviation*base_price, 
+                max = base_price+deviation*base_price, n=nsamples)
+
+# create cost_irrig test values
+cost_irrig = rnorm(mean = 530, sd = deviation, n = nsamples)
+
+# create parameter dataframe
+parms = cbind.data.frame(cost_irrig, price)
+
+# now run our model for the parameters
+results = parms %>% pmap(crop_profit, yield_anomaly = yieldanomaly,
+                                      cost_nonirrig = 3367)
+
+# extract results from the list as above
+profit = map_df(results,`[`, c("year", "yield", "profit"))
+
+# add the parameter values for each run
+profit_df = cbind.data.frame(profit, parms)
+
+
+sens_plot <- ggplot(data = profit_df, aes(x = price, 
+                                        y = profit)) +
+  geom_point() +
+  labs(y="Profit", x="Price",
+       title = "Senstivity Analysis for Price  Parameters") +
+  theme_classic()
+
+
+sens_plot2 <- ggplot(data = profit_df, aes(x = cost_irrig, 
+                                        y = profit)) +
+  geom_point() +
+  labs(y="Profit", x="Cost of Irrigation",
+       title = "Senstivity Analysis for Cost of Irrigation Parameters") +
+  theme_classic()
+
+sens_plot + sens_plot2
+```
+
+### Conclusion

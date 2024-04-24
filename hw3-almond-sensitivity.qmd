@@ -1,0 +1,49 @@
+---
+title: "HW3 almond sensitivity"
+format: html
+---
+
+Conceptual Model & Game Plan: 
+
+We will use the output for mean_almond_yeild from our almond_yield function as input into a function that estimates profit given a revenue (in $/ton)
+
+* compute_profit_fromalmonds
+    
+    * inputs: mean_almond_yield, revenue, cost
+    * outputs: single dataframe with columns for
+                    * profit
+                    * year??
+
+Profit = Yield*Revenue - Non-irrigation_cost + irrigation_cost
+
+Where: 
+Profit: annual profit in $/acre
+
+Yield = annual almond yield from yield function in tons/acre
+Revenue = revenue from selling almonds in $/ton
+Note: end up with units $/acre
+
+Cost = cost of production per acre (est: $3,897 per acre)
+Note: end up with units $/acre
+
+Could do something more fun like Cost = non-irrigation cost + irrigation cost and just look at varying irrigation costs in $/acre
+
+Parameters we can vary: 
+
+1: Revenue (Over a range: 0.90 - 2.10 dollars per POUND, so first convert to $ per ton (1 pound = 0.0005 tons; so 0.9 dollars per pound is 0.9/0.0005 dollars per ton = 1800 dollars per ton & 2.10 dollars per pound is 4200 dollars per ton))
+
+2: Annual Cost of production: how much do we want to vary this? Do we want to just do a piece?
+
+Plots we should make:
+
+Parm 1: Revenue
+
+1: Boxplot showing parm uncertainty (with ?? on x axis)
+2: Boxplot showing mean of parm across the range of uncertainty w the output on x axis
+3: Scatterplot of parm vs output showing relationship of how parm influences the results
+
+Parm 2: Cost
+
+1: Boxplot showing parm uncertainty (with ?? on x axis)
+2: Boxplot showing mean of parm across the range of uncertainty w the output on x axis
+3: Scatterplot of parm vs output showing relationship of how parm influences the results
