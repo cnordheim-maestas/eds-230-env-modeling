@@ -101,8 +101,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>Ecological Prelude:</p>
-<p>This data is taken from Sagehen Creek field station, a reserve that has a lot of research on birds, particularly interesting to us is the the MAPS program (<a href="https://www.birdpop.org/pages/maps.php" class="uri">https://www.birdpop.org/pages/maps.php</a>) which monitors many species of birds to model their populations. Many birds rely on emerging insects, like mayflies, as a food source. Mayflies tend to emerge en mass, so it is vital that the timing of the mayfly emergence lines up with when the bird predators are present, especially for migratory species. Additionally, it has been postulated that a reduced or increased stream flow can trigger changes in when mayflies emerge (a delay or early emergence, respectively). A delayed emergence could be detrimental to the birds relying on the mayfly food source, and thus, we will focus on the instances of high streamflow, the maximum, during the months of ecological relevance to mayfly emergence. Thus, we will be using the streamflow model outputs from the Sagehen creek models to determine <strong>which parameter set best predicts the maximum streamflow in the window of mayfly emergence (June-July)</strong></p>
+<section id="ecological-prelude-by-caitlin" class="level3">
+<h3 class="anchored" data-anchor-id="ecological-prelude-by-caitlin">Ecological Prelude by Caitlin:</h3>
+<p>(will be part of the paragraph at the end of the assignment, justifies why the month of July and why the max streamflow)</p>
+<p>This data is taken from Sagehen Creek field station, a reserve that has a lot of research on birds, particularly interesting to us is the the MAPS program (<a href="https://www.birdpop.org/pages/maps.php" class="uri">https://www.birdpop.org/pages/maps.php</a>) which monitors many species of birds to model their populations. Many birds rely on emerging insects, like mayflies, as a food source. Mayflies tend to emerge en mass, so it is vital that the timing of the mayfly emergence lines up with when the bird predators are present, especially for migratory species. Additionally, it has been postulated that a reduced or increased stream flow can trigger changes in when mayflies emerge (a delay or early emergence, respectively). A delayed emergence could be detrimental to the birds relying on the mayfly food source, and thus, we will focus on the instances of high streamflow, the maximum, during the months of ecological relevance to mayfly emergence. Thus, we will be using the streamflow model outputs from the Sagehen creek models to determine <strong>which parameter set best predicts the maximum streamflow, and minimized the overall error in prediction of streamflow in the window of mayfly emergence (July)</strong></p>
 <div class="quarto-figure quarto-figure-left">
 <figure class="figure">
 <p><a href="https://www.birdsasart-blog.com/baa/wp-content/gallery/general-2017/cache/crop-to-head-Cattle-Egret-with-mayfly-_A923730-Indian-Lake-Estates-FL-1.jpg-nggid048763-ngg0dyn-800x0x100-00f0w010c010r110f110r010t010.jpg"><img src="https://www.birdsasart-blog.com/baa/wp-content/gallery/general-2017/cache/crop-to-head-Cattle-Egret-with-mayfly-_A923730-Indian-Lake-Estates-FL-1.jpg-nggid048763-ngg0dyn-800x0x100-00f0w010c010r110f110r010t010.jpg" class="img-fluid figure-img" alt="photo of Cattle egret munching on a mayfly" width="300"></a></p>
@@ -110,9 +112,153 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 <p><em>Note to Kat: If we are feeling fancy, instead of doing the monthly maximum streamflow, maybe we could calculate the deviation from the mean of all years, that would be more ecologically relevant, but less easily to follow along with the example code, so let’s save this as an extra.</em></p>
+</section>
+<section id="code" class="level1">
+<h1>Code</h1>
+<section id="part-1-make-the-function" class="level2">
+<h2 class="anchored" data-anchor-id="part-1-make-the-function">Part 1 make the function</h2>
+</section>
+<section id="function-flow_metrics_mayflies" class="level2">
+<h2 class="anchored" data-anchor-id="function-flow_metrics_mayflies">Function: flow_metrics_mayflies</h2>
+<p>Goal: make a function that calculates the percent error of the model and true observations for 2 important indices for mayflies: (1) the entire month of mayfly emergence (2) the maximum water flow within that mayfly month. We will also output the correlation values for both indices.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"flow_metrics_mayflies.R"</span>) <span class="co"># this is the function, will implement it in part 2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><em>Question for Kat: is this what the question was asking? I have 4 metrics, and it asked for 2…so hopefully it’s good enough!</em></p>
+</section>
+</section>
+<section id="part-2" class="level1">
+<h1>Part 2</h1>
+<section id="libraries-data" class="level3">
+<h3 class="anchored" data-anchor-id="libraries-data">libraries &amp; data</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sensitivity)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># import data (note: I am a disorganized mess and keep everything in one folder so you'll prob have to update your file path)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># for Part 1 and getting data for part 2</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>sager <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">"sager.txt"</span>, <span class="at">header=</span>T)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>msage <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">"sagerm.txt"</span>, <span class="at">header=</span>T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-wrangling" class="level3">
+<h3 class="anchored" data-anchor-id="data-wrangling">data wrangling</h3>
+<section id="sager-wrangling" class="level4">
+<h4 class="anchored" data-anchor-id="sager-wrangling">sager wrangling</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add date</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>sager <span class="ot">=</span> sager <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">paste</span>(day,month,year, <span class="at">sep=</span><span class="st">"/"</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>sager<span class="sc">$</span>date <span class="ot">=</span> <span class="fu">as.Date</span>(sager<span class="sc">$</span>date,<span class="st">"%d/%m/%Y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="msage-wrangling" class="level4">
+<h4 class="anchored" data-anchor-id="msage-wrangling">msage wrangling</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lets say we know the start date from our earlier output, as in lecture</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>date <span class="ot">=</span> sager<span class="sc">$</span>date</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>month <span class="ot">=</span> sager<span class="sc">$</span>month</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>year <span class="ot">=</span> sager<span class="sc">$</span>year</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>day <span class="ot">=</span> sager<span class="sc">$</span>day</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>wy <span class="ot">=</span> sager<span class="sc">$</span>wy</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># let's explore the data</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(msage<span class="sc">$</span>wy) <span class="co"># 1966 - 1990 is water year range</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1966 1990</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(msage<span class="sc">$</span>month) <span class="co"># all months, numbered 1-12, so our months of interest will be 6 and 7 (June and July)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]  1 12</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot our model simulations (code from lecture)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>msagel <span class="ot">=</span> msage <span class="sc">%&gt;%</span> <span class="fu">pivot_longer</span>(<span class="at">cols=</span><span class="sc">!</span><span class="fu">c</span>(date, month, year, day,wy), <span class="at">names_to=</span><span class="st">"run"</span>, <span class="at">values_to=</span><span class="st">"flow"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># let's look at 1970, because groovy</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>p1<span class="ot">=</span><span class="fu">ggplot</span>(<span class="fu">subset</span>(msagel, wy <span class="sc">==</span> <span class="dv">1970</span>), <span class="fu">aes</span>(<span class="fu">as.Date</span>(date), flow, <span class="at">col=</span>run))<span class="sc">+</span><span class="fu">geom_line</span>()<span class="sc">+</span><span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># lets add observed streamflow</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>p1<span class="sc">+</span><span class="fu">geom_line</span>(<span class="at">data=</span><span class="fu">subset</span>(sager, wy <span class="sc">==</span> <span class="dv">1970</span>), <span class="fu">aes</span>(<span class="fu">as.Date</span>(date), obs), <span class="at">size=</span><span class="dv">2</span>, <span class="at">col=</span><span class="st">"black"</span>, <span class="at">linetype=</span><span class="dv">2</span>)<span class="sc">+</span><span class="fu">labs</span>(<span class="at">y=</span><span class="st">"Streamflow"</span>, <span class="at">x=</span><span class="st">"Date"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"simulated and observed data for 1970"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="week4-bonus-hw-Sagehen-assignment_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="split-sample-calibration-and-answers" class="level3">
+<h3 class="anchored" data-anchor-id="split-sample-calibration-and-answers">split-sample calibration and answers</h3>
+<p><strong>We are going to pretend we are a lab that only only has data from 1970-1980 years to train our data on.</strong></p>
+<section id="outline-for-this-section" class="level4">
+<h4 class="anchored" data-anchor-id="outline-for-this-section">Outline for this section:</h4>
+</section>
+</section>
+<section id="step-0-create-a-combined-metric-not-sure-if-this-is-required-or-not-instructions-unclear" class="level3">
+<h3 class="anchored" data-anchor-id="step-0-create-a-combined-metric-not-sure-if-this-is-required-or-not-instructions-unclear"><em>step 0: create a combined metric?? Not sure if this is required or not, instructions unclear</em></h3>
+</section>
+<section id="step-1-implement-the-function" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-implement-the-function">step 1 implement the function</h3>
+<p>to compute performance measures for all output</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> msage <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>date, <span class="sc">-</span>month, <span class="sc">-</span>day, <span class="sc">-</span>year, <span class="sc">-</span>wy ) <span class="sc">%&gt;%</span> <span class="fu">map_df</span>(flow_metrics_mayflies, <span class="at">o=</span>sager<span class="sc">$</span>obs, <span class="at">month=</span>msage<span class="sc">$</span>month, <span class="at">day=</span>msage<span class="sc">$</span>day, <span class="at">year=</span>msage<span class="sc">$</span>year, <span class="at">wy=</span>msage<span class="sc">$</span>wy)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(res)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> mayfly_month_err  mayfly_month_cor mayfly_max_err     mayfly_max_cor  
+ Min.   :-22.773   Min.   :0.6334   Min.   :-1.33457   Min.   :0.7079  
+ 1st Qu.:-18.847   1st Qu.:0.7809   1st Qu.:-1.04162   1st Qu.:0.8325  
+ Median :-15.191   Median :0.8325   Median :-0.85564   Median :0.8581  
+ Mean   :-12.980   Mean   :0.8203   Mean   :-0.81000   Mean   :0.8518  
+ 3rd Qu.: -9.680   3rd Qu.:0.8606   3rd Qu.:-0.58912   3rd Qu.:0.8762  
+ Max.   :  8.039   Max.   :0.9450   Max.   :-0.02931   Max.   :0.9526  </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># graph range of performance measures</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>resl <span class="ot">=</span> res <span class="sc">%&gt;%</span> <span class="fu">pivot_longer</span>(<span class="at">cols=</span><span class="fu">everything</span>(), <span class="at">names_to=</span><span class="st">"metric"</span>, <span class="at">values_to=</span><span class="st">"value"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(resl, <span class="fu">aes</span>(metric, value))<span class="sc">+</span><span class="fu">geom_boxplot</span>()<span class="sc">+</span><span class="fu">facet_wrap</span>(<span class="sc">~</span>metric, <span class="at">scales=</span><span class="st">"free"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="week4-bonus-hw-Sagehen-assignment_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># assign an identifier to each row, use the same identify for columns of original streamflow data</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>run <span class="ot">=</span> <span class="fu">seq</span>(<span class="at">from=</span><span class="dv">1</span>,<span class="at">to=</span><span class="fu">nrow</span>(res))</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(msage)<span class="ot">=</span><span class="fu">c</span>(res<span class="sc">$</span>run, <span class="st">"date"</span>,<span class="st">"month"</span>,<span class="st">"year"</span>,<span class="st">"day"</span>,<span class="st">"wy"</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># select the best model for which the error for predicting the maximum water flow is minimized</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>best <span class="ot">=</span> res[<span class="fu">which.min</span>(res<span class="sc">$</span>mayfly_max_err),]</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>msagel  <span class="ot">=</span>  msage <span class="sc">%&gt;%</span> <span class="fu">pivot_longer</span>(<span class="at">cols=</span><span class="sc">!</span><span class="fu">c</span>(date, month, year, day,wy), <span class="at">names_to=</span><span class="st">"run"</span>, <span class="at">values_to=</span><span class="st">"flow"</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">subset</span>(msagel, run <span class="sc">==</span> best<span class="sc">$</span>run), <span class="fu">aes</span>(date, flow)) <span class="sc">+</span> <span class="fu">geom_line</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="week4-bonus-hw-Sagehen-assignment_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="do">## best is run 8!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-2-do-this-for-the-split-sample-calibration" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-do-this-for-the-split-sample-calibration">step 2: do this for the split-sample calibration</h3>
+<p>(only 1970 - 1980), see lecture slide 33, I believe this will fulfill the requirement “Compute and plot how the performance of the model using the best parameter set changed in pre and post calibration periods (that you chose)” but I am not totally clear on the instructions</p>
+</section>
+<section id="step-3-determine-the-best-and-worst-model" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-determine-the-best-and-worst-model">step 3: determine the best AND worst model</h3>
+<p>using similar code above (and on slide 41), input the <strong>best</strong> into the portal on Canvas</p>
+</section>
+<section id="step-4-graph-something-about-streamflow" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-graph-something-about-streamflow">step 4: “Graph something about streamflow…</h3>
+<p>…(e.g daily, mean August, or ?) for the best parameter set”, I was thinking of maybe something where we can visualize the date the x axis, but it is only for July (maybe facet by year? what do you think?) and the flow predictions on the y axis and a line for the observed values as well (similar to the plot on slide 41).</p>
+</section>
+<section id="step-5-write-2-3-sentences" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-write-2-3-sentences">step 5: Write 2-3 sentences</h3>
+<p>to explain your metric design and comment on model performance based on your metric</p>
+<p>Here is my beginning, mainly metric justification:</p>
+<p>This data is taken from Sagehen Creek field station, a reserve that has a lot of research on birds, particularly interesting to us is the the MAPS program (<a href="https://www.birdpop.org/pages/maps.php" class="uri">https://www.birdpop.org/pages/maps.php</a>) which monitors many species of birds to model their populations. Many birds rely on emerging insects, like mayflies, as a food source. Mayflies tend to emerge en mass, so it is vital that the timing of the mayfly emergence lines up with when the bird predators are present, especially for migratory species. Additionally, it has been postulated that a reduced or increased stream flow can trigger changes in when mayflies emerge (a delay or early emergence, respectively). A delayed emergence could be detrimental to the birds relying on the mayfly food source, and thus, we will focus on the instances of high streamflow, the maximum, during the months of ecological relevance to mayfly emergence. Thus, we will be using the streamflow model outputs from the Sagehen creek models to determine <strong>which parameter set best predicts the maximum streamflow in the window of mayfly emergence (June-July)</strong></p>
+<p><strong>Caitlin to insert information on the model performance based on our metric here when we have finished</strong></p>
+</section>
+</section>
 <section id="instructions-notes" class="level1">
 <h1>Instructions &amp; notes</h1>
-<p><strong>sager.txt for part 1; sagerm.txt for part 2</strong></p>
 <section id="part-1-come-up-with-a-combined-metric-that-you-think-is-interesting" class="level2">
 <h2 class="anchored" data-anchor-id="part-1-come-up-with-a-combined-metric-that-you-think-is-interesting">Part 1: Come up with a combined metric that you think is interesting</h2>
 <ul>
@@ -132,85 +278,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>Add the ‘best’ parameter set column number number to the quiz linked below (so we can compare how different metrics influence which parameter you pick)</p></li>
 <li><p>Write 2-3 sentences to explain your metric design and comment on model performance based on your metric Use to Best Parameter (Column) to record your ‘best’ parameter sets</p></li>
 </ul>
-</section>
-</section>
-<section id="code" class="level1">
-<h1>Code</h1>
-<section id="part-1" class="level2">
-<h2 class="anchored" data-anchor-id="part-1">Part 1</h2>
-<p>make the functions</p>
-</section>
-<section id="part-2" class="level2">
-<h2 class="anchored" data-anchor-id="part-2">Part 2</h2>
-<section id="libraries-data" class="level3">
-<h3 class="anchored" data-anchor-id="libraries-data">libraries &amp; data</h3>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sensitivity)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># import data (note: I am a disorganized mess and keep everything in one folder so you'll prob have to update your file path)</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># for Part 1 and getting data for part 2</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>sager <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">"sager.txt"</span>, <span class="at">header=</span>T)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>msage <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">"sagerm.txt"</span>, <span class="at">header=</span>T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="data-wrangling" class="level3">
-<h3 class="anchored" data-anchor-id="data-wrangling">data wrangling</h3>
-<section id="sager-wrangling" class="level4">
-<h4 class="anchored" data-anchor-id="sager-wrangling">sager wrangling</h4>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add date</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sager <span class="ot">=</span> sager <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">paste</span>(day,month,year, <span class="at">sep=</span><span class="st">"/"</span>))</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>sager<span class="sc">$</span>date <span class="ot">=</span> <span class="fu">as.Date</span>(sager<span class="sc">$</span>date,<span class="st">"%d/%m/%Y"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="msage-wrangling" class="level4">
-<h4 class="anchored" data-anchor-id="msage-wrangling">msage wrangling</h4>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lets say we know the start date from our earlier output, as in lecture</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>date <span class="ot">=</span> sager<span class="sc">$</span>date</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>month <span class="ot">=</span> sager<span class="sc">$</span>month</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>year <span class="ot">=</span> sager<span class="sc">$</span>year</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>day <span class="ot">=</span> sager<span class="sc">$</span>day</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>msage<span class="sc">$</span>wy <span class="ot">=</span> sager<span class="sc">$</span>wy</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># let's explore the data</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(msage<span class="sc">$</span>wy) <span class="co"># 1966 - 1990 is water year range</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 1966 1990</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(msage<span class="sc">$</span>month) <span class="co"># all months, numbered 1-12, so our months of interest will be 6 and 7 (June and July)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1]  1 12</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot our model simulations (code from lecture)</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>msagel <span class="ot">=</span> msage <span class="sc">%&gt;%</span> <span class="fu">pivot_longer</span>(<span class="at">cols=</span><span class="sc">!</span><span class="fu">c</span>(date, month, year, day,wy), <span class="at">names_to=</span><span class="st">"run"</span>, <span class="at">values_to=</span><span class="st">"flow"</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># let's look at 1970, because groovy</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>p1<span class="ot">=</span><span class="fu">ggplot</span>(<span class="fu">subset</span>(msagel, wy <span class="sc">==</span> <span class="dv">1970</span>), <span class="fu">aes</span>(<span class="fu">as.Date</span>(date), flow, <span class="at">col=</span>run))<span class="sc">+</span><span class="fu">geom_line</span>()<span class="sc">+</span><span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="week4-bonus-hw-Sagehen-assignment_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
-</div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lets add observed streamflow</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>p1<span class="sc">+</span><span class="fu">geom_line</span>(<span class="at">data=</span><span class="fu">subset</span>(sager, wy <span class="sc">==</span> <span class="dv">1970</span>), <span class="fu">aes</span>(<span class="fu">as.Date</span>(date), obs), <span class="at">size=</span><span class="dv">2</span>, <span class="at">col=</span><span class="st">"black"</span>, <span class="at">linetype=</span><span class="dv">2</span>)<span class="sc">+</span><span class="fu">labs</span>(<span class="at">y=</span><span class="st">"Streamflow"</span>, <span class="at">x=</span><span class="st">"Date"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-ℹ Please use `linewidth` instead.</code></pre>
-</div>
-<div class="cell-output-display">
-<p><img src="week4-bonus-hw-Sagehen-assignment_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-</section>
-</section>
-<section id="split-sample" class="level3">
-<h3 class="anchored" data-anchor-id="split-sample">split-sample</h3>
-<p><strong>We are going to pretend we are a lab that only only has data from 1970-1980 years to train our data on.</strong></p>
-</section>
 </section>
 </section>
 
