@@ -1,0 +1,431 @@
+---
+title: "Calibrating Sagehen Model Streamflow"
+author: "Caitlin Nordheim-Maestas, Kat Le"
+format: 
+  html:
+      code-fold: true
+      code-overflow: wrap
+      embed-resources: true
+editor: visual
+---
+
+# Part 1:
+
+### Combined metric and creating the function
+
+### Function: flow_metrics_mayflies.R
+
+Goal: make a function that creates a combined metric of ecologically important indices for mayfly emergence (See Q5, the discussion section, for justification of these metrics for mayfly emergence!). This function calculates the percent error of the model and true observations, and the correlation values for 2 important indices for mayflies: (1) the entire month of mayfly emergence - for June and July (2) the maximum water flow within that mayfly month, and calculates a combined metric (after adjusting the errors to be on the same scale as the correlation values) for all indices.
+
+
+
+```{r}
+#| message: false
+#| warning: false
+
+# call function
+source(here::here("flow_metrics_mayflies.R"))
+```
+
+# Part 2:
+
+Libraries & Loading Data
+
+```{r}
+#| message: false
+#| warning: false
+
+library(sensitivity)
+library(tidyverse)
+library(purrr)
+library(ggpubr)
+library(here)
+library(gt)
+
+# for Part 1 and getting data for part 2
+sager = read.table("sager.txt", header=T)
+msage = read.table("sagerm.txt", header=T)
+```
+
+sager wrangling
+
+```{r}
+#| message: false
+#| warning: false
+# add date
+sager = sager %>% 
+  mutate(date = paste(day,month,year, sep="/")) 
+sager$date = as.Date(sager$date,"%d/%m/%Y")
+```
+
+msage wrangling
+
+```{r}
+#| message: false
+#| warning: false
+
+# create simulation names
+nsim = ncol(msage)
+#snames = sprintf("S%d", seq(from=1, to=nsim))
+snames = paste0(seq(from=1, to=nsim))
+colnames(msage) = snames
+
+# grab columnn names from sager
+msage$date = sager$date
+msage$month = sager$month
+msage$year = sager$year
+msage$day = sager$day
+msage$wy = sager$wy
+
+# join for observation data
+msage = left_join(msage, sager[,c("obs", "date")],
+                  by = c("date"))
+
+# plot our model simulations (code from lecture)
+msagel = msage %>% 
+  pivot_longer(cols=!c(date, month, year, day, wy), 
+               names_to="run", 
+               values_to="flow")
+
+# let's look at 1970, because groovy
+p1=ggplot(subset(msagel, wy == 1970), 
+          aes(as.Date(date), 
+              flow, 
+              col=run))+
+  geom_line()+
+  theme(legend.position = "none")
+
+# lets add observed streamflow
+finalp1 = p1+
+  geom_line(data=subset(sager, wy == 1970), 
+            aes(as.Date(date), 
+                obs), 
+            size=2, col="black",
+            linetype=2)+
+  labs(y="Streamflow", x="Date") + 
+  ggtitle("simulated and observed data for 1970")
+```
+
+## Q1: Split-sample calibration and answers
+
+**Our calibration period: 1970 to 1980 for calibration.**
+
+### Calibration period
+
+```{r}
+#| message: false
+#| warning: false
+
+# filter for our calibration period: 1970 - 1980
+calibration_period = msage %>% 
+  filter(year %in% c(1970:1980))
+
+# obtain model results by mapping out function over our calibration period for all parameter sets
+calibration_res = calibration_period %>% 
+  select(-date, -month, -day, -year, -wy, -obs) %>% 
+  map_df(flow_metrics_mayflies, 
+         o=calibration_period$obs,
+         month=calibration_period$month, 
+         day=calibration_period$day, 
+         year=calibration_period$year, 
+         wy=calibration_period$wy)
+
+# assign simulation names
+calibration_res$sim = snames
+
+# make the dataframe longer to allow for boxplot showing range of metrics
+calibration_resl = calibration_res %>% 
+  pivot_longer(-sim, names_to="metric",
+               values_to="value")
+
+# boxplot showing the range of the model metrics we used
+ggplot(calibration_resl, aes(metric, value)) +
+  geom_boxplot() +
+  facet_wrap(~metric, scales = "free") +
+  labs(title = "Metrics for Calibration Period of 1970-1980") +
+  theme_bw()
+
+```
+
+## Q2: Best and worst performance metric
+
+Here, we calculated the best and worst parameter sets for (1) the calibration period and (2) the post-calibration period
+
+```{r}
+#| message: false
+#| warning: false
+
+###### select best 
+
+# best set for calibration period of 1970 - 1980
+best_calibrationperiod = calibration_res[which.max(calibration_res$combined_metric),] %>% 
+  mutate(type = "best_calibrationperiod")
+
+###### select worst
+
+# best worst for calibration period of 1970 - 1980
+worst_calibrationperiod = calibration_res[which.min(calibration_res$combined_metric),] %>% 
+  mutate(type = "worst_calibrationperiod")
+
+# create a table of the best and worst
+
+best_df = rbind.data.frame( best_calibrationperiod, 
+                           worst_calibrationperiod) %>% 
+  select(type, sim, combined_metric)
+
+best_df %>% 
+  gt() %>% 
+  tab_header(title = "Best and Worst Runs",
+             subtitle = "Based Off Combined Metric")
+
+```
+
+## Q3: Graph something about streamflow for the best parameter set
+
+Here, we show the best parameter set from the CALIBRATION period, 1970 - 1980. 
+
+```{r}
+#| message: false
+#| warning: false
+
+# show model output of best model and observed data over all time within calibration period
+ggplot(msage) +
+  geom_line(aes(date, 
+                msage[,best_calibrationperiod$sim], 
+                color = "Model")) +
+  geom_line(aes(date, obs, 
+                color ="Observed")) +
+  labs(title = "Best Paramater Set from Calibration Compared to Observed \nOver the Calibration Period of 1970 - 1980",
+       y = "Daily Stream Flow (mm per day)", 
+       x = "Date",
+       color = "Legend") +
+  scale_color_manual(values = c("Model" = "black", 
+                                "Observed" = "red")) +
+  scale_x_date(limits = as.Date(c("1970-01-01", "1980-12-31")),
+               date_breaks = "1 year",  # Set breaks every year
+               date_labels = "%Y") +
+  theme_bw()
+  
+# Create vector of June 1st and July 1st for each year from 1970 to 1980
+breaks_dates <- as.Date(unlist(sapply(1970:1980, function(year) {
+  c(sprintf("%d-06-01", year), sprintf("%d-07-01", year))
+})))
+
+### More ecologically relevant plot: Just june and july
+
+# filter dataframe to just the calibration period (needed to do this to make the faceted plot by year)
+msage_filtered <- msage %>%
+  filter(format(date, "%Y") %in% c(1970:1980) & 
+         format(date, "%m") %in% c("06", "07"))
+
+# plot june and july observed and predicted data faceted by year
+ggplot(msage_filtered) +
+  geom_line(aes(date, obs, 
+                color ="Observed")) +  
+  geom_line(aes(date, 
+                msage_filtered[,best_calibrationperiod$sim], 
+                color = "Model")) +
+  scale_color_manual(values = c("Model" = "black", 
+                                "Observed" = "red")) +
+    scale_x_date(breaks = breaks_dates,
+               labels = scales::date_format("%b %d")) +
+  facet_wrap(~ format(date, "%Y"), scales = "free_x") +  # Facet by year, free x scales for each facet
+  labs(title = "Best Paramater Set from Calibration Compared to Observed \nOver the Calibration Period of 1970 - 1980",
+       y = "Daily Stream Flow (mm per day)", 
+       x = "Month",
+       color = "Legend") +
+  theme_bw()
+
+```
+
+## Q4: Compute and plot how the performance of the model using the best parameter set changed in pre and post calibration periods (that you chose)
+
+```{r}
+#| message: false
+#| warning: false
+# show model output of best model and observed data over all time over post-calibration period
+ggplot(msage) +
+  geom_line(aes(date, 
+                msage[,best_calibrationperiod$sim], 
+                color = "Model")) +
+  geom_line(aes(date, obs, 
+                color ="Observed")) +
+  labs(title = "Best Paramater Set from Calibration Compared to Observed \nOver the Post-Calibration Period of 1981 - 1990",
+       y = "Daily Stream Flow (mm per day)", 
+       x = "Date",
+       color = "Legend") +
+  scale_color_manual(values = c("Model" = "black", 
+                                "Observed" = "red")) +
+  scale_x_date(limits = as.Date(c("1981-01-01", "1990-12-31")),
+               date_breaks = "1 year",  # Set breaks every year
+               date_labels = "%Y") +
+  theme_bw()
+  
+# Ecologically relevant: Just june and july
+  
+  # Create vector of June 1st and July 1st for each year from 1981 to 1990
+breaks_dates <- as.Date(unlist(sapply(1981:1990, function(year) {
+  c(sprintf("%d-06-01", year), sprintf("%d-07-01", year))
+})))
+
+# filter dataframe to just the post-calibration period (needed to do this to make the faceted plot by year)
+msage_filtered_post <- msage %>%
+  filter(format(date, "%Y") %in% c(1981:1990) & 
+         format(date, "%m") %in% c("06", "07"))
+
+# plot june and july observed and predicted data faceted by year
+ggplot(msage_filtered_post) +
+  geom_line(aes(date, obs, 
+                color ="Observed")) +  
+  geom_line(aes(date, 
+                msage_filtered_post[,best_calibrationperiod$sim], 
+                color = "Model")) +
+  scale_color_manual(values = c("Model" = "black", 
+                                "Observed" = "red")) +
+    scale_x_date(breaks = breaks_dates,
+               labels = scales::date_format("%b %d")) +
+  facet_wrap(~ format(date, "%Y"), scales = "free_x") +  # Facet by year, free x scales for each facet
+  labs(title = "Best Paramater Set from Calibration Compared to Observed \nOver the Post-Calibration Period of 1981 - 1990",
+       y = "Daily Stream Flow (mm per day)", 
+       x = "Month",
+       color = "Legend") +
+  theme_bw()
+
+```
+
+## Q5: Discussion
+
+#### Metric justification
+
+This data is taken from Sagehen Creek field station, a reserve that has a lot of research on birds, which monitors many species of birds to model their populations. Many birds rely on emerging insects, like mayflies, as a food source. Mayflies tend to emerge en mass, so it is vital that the timing of the mayfly emergence lines up with when the bird predators are present, especially for migratory species. It has been postulated that an increased stream flow can trigger a delayed in mayfly emerge. A delayed emergence could be detrimental to the birds relying on the mayfly food source, and thus, we will focus on the instances of high streamflow, the maximum, during the months of ecological relevance to mayfly emergence. Thus, we will be using the streamflow model outputs from the Sagehen creek models to determine which parameter set best predicts combined set of metrics of importance (the error and correlation of monthly streamflow and maximum streamflow) in the window of mayfly emergence (the months of June and July).
+
+#### Model performance
+
+Our model performed surprisingly well for our model goal, which was to best predict the streamflow overall, and the maximum flow in the months of mayfly emergence (June and July). We can see that the model did a great job of predicting the overall streamflow in our months of interest in our post-calibration plot, where the model predictions are very close to the observed data form 1981 - 1990. Additionally, our model does a good job at predicting the maximum flow values in this plot, with most of the predicted maximum flow matching the observed data closely, with the exception of the beginning of June 1986, which overpredicted, but not by much. 
+
+#### For fun: image of an egret snacking on a mayfly
+[![Cattle egret snacking on a mayfly; photo by Arthur Morris](https://www.birdsasart-blog.com/baa/wp-content/gallery/general-2017/cache/crop-to-head-Cattle-Egret-with-mayfly-_A923730-Indian-Lake-Estates-FL-1.jpg-nggid048763-ngg0dyn-800x0x100-00f0w010c010r110f110r010t010.jpg){fig-alt="photo of Cattle egret munching on a mayfly" fig-align="left" width="300"}](https://www.birdsasart-blog.com/baa/wp-content/gallery/general-2017/cache/crop-to-head-Cattle-Egret-with-mayfly-_A923730-Indian-Lake-Estates-FL-1.jpg-nggid048763-ngg0dyn-800x0x100-00f0w010c010r110f110r010t010.jpg)
+
+## Appendix
+
+For fun, we also conducted these steps for the WHOLE model period, not split-sample!
+
+### whole sample (not split sample) calibration
+
+```{r}
+#| message: false
+#| warning: false
+
+# apply flow_metrics_mayflies function to dataframe
+res = msage %>% 
+  select(-date, -month, -day, -year, -wy, -obs) %>% 
+  map_df(flow_metrics_mayflies, o=sager$obs, 
+         month=msage$month, day=msage$day, 
+         year=msage$year, wy=msage$wy)
+
+# graph range of performance measures
+resl = res %>% 
+  pivot_longer(cols=everything(), 
+               names_to="metric", 
+               values_to="value")
+
+ggplot(resl, aes(metric, value)) +
+  geom_boxplot()+
+  facet_wrap(~metric, scales="free") +
+  labs(title = "Metrics Based Off All Data from 1965-1990") +
+  theme_bw()
+
+# assign an identifier to each row, use the same identify for columns of original streamflow data
+res$sim = seq(from=1,to=nrow(res))
+colnames(msage)=c(res$sim, "date","month","year","day","wy", "obs")
+
+# select the best model for which the combined metric is maximized for the WHOLE DATASET
+best = res[which.max(res$combined_metric),]
+
+msagel  =  msage %>% 
+  pivot_longer(cols=!c(date, month, year, day,wy), 
+               names_to="sim", 
+               values_to="flow")
+ggplot(subset(msagel, 
+              sim == best$sim), 
+       aes(date, flow)) + 
+  geom_line() +
+  labs(title = "Best Model Run Where Combined Metric is Maximized",
+       subtitle = "Using All Years",
+       y = "Stream Flow (mm per day)",
+       x = "Date") +
+  theme_bw()
+
+## best run for the WHOLE dataset is run 89!
+
+# select the best model for our combined metric
+best = res[which.max(res$combined_metric),] %>% 
+  mutate(type = "best")
+
+# select the best model for our combined metric
+worst = res[which.min(res$combined_metric),] %>% 
+  mutate(type = "worst")
+
+best_df = rbind.data.frame(best,worst) %>% 
+  select(type, sim, combined_metric)
+
+best_df %>% 
+  gt() %>% 
+  tab_header(title = "Best and Worst Runs for NOT split sample",
+             subtitle = "Based Off Combined Metric")
+
+```
+
+## Post-calibration "Validation" time period
+
+What would the best parameter set be if we trained the model on 1981 - 1990?
+
+```{r}
+#| message: false
+#| warning: false
+
+validation_period = msage %>% 
+ filter(year %in% c(1981:1990))
+
+validation_res = validation_period %>% 
+  select(-date, -month, -day, -year, -wy, -obs) %>% 
+  map_df(flow_metrics_mayflies, 
+         o=validation_period$obs,
+         month=validation_period$month, 
+         day=validation_period$day, 
+         year=validation_period$year, 
+         wy=validation_period$wy)
+
+
+validation_res$sim = snames
+
+validation_resl = validation_res %>% 
+  pivot_longer(-sim, names_to="metric",
+               values_to="value")
+
+ggplot(validation_resl, aes(metric, value)) +
+  geom_boxplot() +
+  facet_wrap(~metric, scales = "free") +
+  labs(title = "Metrics for Validation Period of Post-Calibration Period (1981 - 1990)") +
+  theme_bw()
+
+
+# best set for post-calibration period of 1981 - 1990
+best_validationperiod = validation_res[which.max(validation_res$combined_metric),] %>% 
+  mutate(type = "best_validationperiod")
+
+# worst set for post-calibration period of 1981 - 1990
+worst_validationperiod = validation_res[which.min(validation_res$combined_metric),] %>% 
+  mutate(type = "worst_validationperiod")
+
+best_df = rbind.data.frame(
+                           best_validationperiod,
+                           worst_validationperiod) %>% 
+  select(type, sim, combined_metric)
+
+best_df %>% 
+  gt() %>% 
+  tab_header(title = "Best and Worst Runs",
+             subtitle = "Based Off Combined Metric")
+```
+

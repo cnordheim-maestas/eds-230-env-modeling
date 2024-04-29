@@ -174,11 +174,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(sens_Catm_Sobol<span class="sc">$</span>S) <span class="ot">=</span> <span class="fu">colnames</span>(parms)</span>
 <span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>sens_Catm_Sobol<span class="sc">$</span>S</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        original          bias std. error  min. c.i. max. c.i.
-k_o    0.1280736  3.334611e-03 0.03506407 0.06432475 0.2101580
-k_d    0.1627961 -3.569696e-05 0.03462146 0.10692827 0.2485333
-v      0.5107852  3.752112e-03 0.02334350 0.46254864 0.5615751
-height 0.1133533  1.761161e-03 0.03266828 0.05051327 0.1849740</code></pre>
+<pre><code>        original         bias std. error  min. c.i. max. c.i.
+k_o    0.1844184  0.001206585 0.02823046 0.13299139 0.2455581
+k_d    0.1879245 -0.007217903 0.03329383 0.12602398 0.2616269
+v      0.5208170 -0.003283172 0.02214615 0.47618627 0.5651815
+height 0.1387974 -0.002125691 0.02720953 0.08226062 0.1945758</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># interpretation: </span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -191,11 +191,11 @@ height 0.1133533  1.761161e-03 0.03266828 0.05051327 0.1849740</code></pre>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">row.names</span>(sens_Catm_Sobol<span class="sc">$</span>T) <span class="ot">=</span> <span class="fu">colnames</span>(parms) <span class="co"># give it names</span></span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>sens_Catm_Sobol<span class="sc">$</span>T</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        original          bias  std. error min. c.i. max. c.i.
-k_o    0.2017871 -0.0011673482 0.012165760 0.1756614 0.2277985
-k_d    0.1945362  0.0001919743 0.011552079 0.1725937 0.2161249
-v      0.5351524  0.0014280047 0.029641023 0.4704348 0.5859621
-height 0.1263621 -0.0004350316 0.008262744 0.1102515 0.1433477</code></pre>
+<pre><code>        original        bias  std. error min. c.i. max. c.i.
+k_o    0.2115892 0.002683933 0.012369099 0.1867851 0.2332229
+k_d    0.1899217 0.001065104 0.011649711 0.1643183 0.2095117
+v      0.4929088 0.003244436 0.029406611 0.4286570 0.5531125
+height 0.1370372 0.001890207 0.008300856 0.1184612 0.1528505</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># interpretation: </span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -250,20 +250,20 @@ height 0.1263621 -0.0004350316 0.008262744 0.1102515 0.1433477</code></pre>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># partitions variance (main effect without co-variance) - sums approximately to one</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>sens_Catm_Sobol<span class="sc">$</span>S</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        original          bias std. error  min. c.i. max. c.i.
-k_o    0.1280736  3.334611e-03 0.03506407 0.06432475 0.2101580
-k_d    0.1627961 -3.569696e-05 0.03462146 0.10692827 0.2485333
-v      0.5107852  3.752112e-03 0.02334350 0.46254864 0.5615751
-height 0.1133533  1.761161e-03 0.03266828 0.05051327 0.1849740</code></pre>
+<pre><code>        original         bias std. error  min. c.i. max. c.i.
+k_o    0.1844184  0.001206585 0.02823046 0.13299139 0.2455581
+k_d    0.1879245 -0.007217903 0.03329383 0.12602398 0.2616269
+v      0.5208170 -0.003283172 0.02214615 0.47618627 0.5651815
+height 0.1387974 -0.002125691 0.02720953 0.08226062 0.1945758</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Now let's check out the total effect (T)- accounts for parameter interactions</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>sens_Catm_Sobol<span class="sc">$</span>T</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        original          bias  std. error min. c.i. max. c.i.
-k_o    0.2017871 -0.0011673482 0.012165760 0.1756614 0.2277985
-k_d    0.1945362  0.0001919743 0.011552079 0.1725937 0.2161249
-v      0.5351524  0.0014280047 0.029641023 0.4704348 0.5859621
-height 0.1263621 -0.0004350316 0.008262744 0.1102515 0.1433477</code></pre>
+<pre><code>        original        bias  std. error min. c.i. max. c.i.
+k_o    0.2115892 0.002683933 0.012369099 0.1867851 0.2332229
+k_d    0.1899217 0.001065104 0.011649711 0.1643183 0.2095117
+v      0.4929088 0.003244436 0.029406611 0.4286570 0.5531125
+height 0.1370372 0.001890207 0.008300856 0.1184612 0.1528505</code></pre>
 </div>
 </div>
 </section>

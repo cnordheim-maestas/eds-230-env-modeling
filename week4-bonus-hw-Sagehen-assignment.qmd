@@ -123,7 +123,7 @@ ggplot(subset(msagel, run == best$run), aes(date, flow)) + geom_line()
 
 ### step 2: do this for the split-sample calibration 
 
-(only 1970 - 1980), see lecture slide 33, I believe this will fulfill the requirement "Compute and plot how the performance of the model using the best parameter set changed in pre and post calibration periods (that you chose)" but I am not totally clear on the instructions
+(only 1970 - 1980), see lecture slide 33, I believe this will fulfill the requirement "Compute and plot how the performance of the model using the best parameter set changed in pre and post calibration periods (that you chose)"
 
 ### step 3: determine the best AND worst model
 
